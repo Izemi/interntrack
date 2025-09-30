@@ -12,6 +12,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [visaFilter, setVisaFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('date');
 
   const fetchJobs = async () => {
     try {
@@ -74,8 +75,31 @@ function App() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // Filter jobs based on search and filters
-  const filteredJobs = jobs.filter(job => {
+  // Calculate days ago
+  const getDaysAgo = (dateString) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const diffTime = Math.abs(today - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  };
+
+  // Calculate statistics
+  const stats = {
+    total: jobs.length,
+    applied: jobs.filter(j => j.status === 'Applied').length,
+    interviews: jobs.filter(j => ['Phone Screen', 'Final Round', 'Online Assessment'].includes(j.status)).length,
+    offers: jobs.filter(j => j.status === 'Offer').length,
+    rejected: jobs.filter(j => j.status === 'Rejected').length,
+    responseRate: jobs.length > 0 ? Math.round((jobs.filter(j => j.status !== 'Applied').length / jobs.length) * 100) : 0,
+    sponsorsVisa: jobs.filter(j => j.sponsors_visa).length
+  };
+
+  // Filter and sort jobs
+  let filteredJobs = jobs.filter(job => {
     const matchesSearch = job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          job.role.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || job.status === statusFilter;
@@ -84,6 +108,18 @@ function App() {
                        (visaFilter === 'No Sponsor' && !job.sponsors_visa);
     
     return matchesSearch && matchesStatus && matchesVisa;
+  });
+
+  // Sort jobs
+  filteredJobs = [...filteredJobs].sort((a, b) => {
+    if (sortBy === 'date') {
+      return new Date(b.applied_date) - new Date(a.applied_date);
+    } else if (sortBy === 'company') {
+      return a.company.localeCompare(b.company);
+    } else if (sortBy === 'status') {
+      return a.status.localeCompare(b.status);
+    }
+    return 0;
   });
 
   if (loading) {
@@ -108,9 +144,31 @@ function App() {
           </button>
         </div>
 
+        {/* Statistics Cards */}
+        {jobs.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-600">Total Applications</div>
+              <div className="text-3xl font-bold text-gray-800">{stats.total}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-600">Interviews</div>
+              <div className="text-3xl font-bold text-yellow-600">{stats.interviews}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-600">Response Rate</div>
+              <div className="text-3xl font-bold text-blue-600">{stats.responseRate}%</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-600">Visa Sponsors</div>
+              <div className="text-3xl font-bold text-green-600">{stats.sponsorsVisa}</div>
+            </div>
+          </div>
+        )}
+
         {/* Search and Filters */}
         <div className="mb-6 bg-white rounded-lg shadow p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Search</label>
               <input
@@ -151,6 +209,19 @@ function App() {
                 <option>No Sponsor</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Sort By</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full border rounded p-2"
+              >
+                <option value="date">Date Applied</option>
+                <option value="company">Company</option>
+                <option value="status">Status</option>
+              </select>
+            </div>
           </div>
         </div>
         
@@ -174,6 +245,7 @@ function App() {
                     <th className="text-left p-4 font-semibold">Company</th>
                     <th className="text-left p-4 font-semibold">Role</th>
                     <th className="text-left p-4 font-semibold">Location</th>
+                    <th className="text-left p-4 font-semibold">Applied</th>
                     <th className="text-left p-4 font-semibold">Status</th>
                     <th className="text-left p-4 font-semibold">Visa Sponsor</th>
                     <th className="text-left p-4 font-semibold">Salary</th>
@@ -186,6 +258,7 @@ function App() {
                       <td className="p-4 font-medium">{job.company}</td>
                       <td className="p-4">{job.role}</td>
                       <td className="p-4 text-gray-600">{job.location || '-'}</td>
+                      <td className="p-4 text-gray-600 text-sm">{getDaysAgo(job.applied_date)}</td>
                       <td className="p-4">
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(job.status)}`}>
                           {job.status}
@@ -222,10 +295,17 @@ function App() {
         </div>
 
         {jobs.length > 0 && (
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              💡 <strong>Tip:</strong> Showing {filteredJobs.length} of {jobs.length} applications • {jobs.filter(j => j.sponsors_visa).length} companies sponsor F-1 visas
-            </p>
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                💡 <strong>Tip:</strong> Showing {filteredJobs.length} of {stats.total} applications
+              </p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-800">
+                ✓ <strong>{stats.sponsorsVisa}</strong> companies sponsor F-1 visas ({Math.round((stats.sponsorsVisa / stats.total) * 100)}%)
+              </p>
+            </div>
           </div>
         )}
       </div>
