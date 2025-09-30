@@ -9,6 +9,9 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingJob, setEditingJob] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [visaFilter, setVisaFilter] = useState('All');
 
   const fetchJobs = async () => {
     try {
@@ -71,6 +74,18 @@ function App() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
+  // Filter jobs based on search and filters
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         job.role.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || job.status === statusFilter;
+    const matchesVisa = visaFilter === 'All' || 
+                       (visaFilter === 'Sponsors' && job.sponsors_visa) ||
+                       (visaFilter === 'No Sponsor' && !job.sponsors_visa);
+    
+    return matchesSearch && matchesStatus && matchesVisa;
+  });
+
   if (loading) {
     return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="text-xl">Loading...</div>
@@ -92,12 +107,64 @@ function App() {
             + Add Application
           </button>
         </div>
+
+        {/* Search and Filters */}
+        <div className="mb-6 bg-white rounded-lg shadow p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Search</label>
+              <input
+                type="text"
+                placeholder="Search by company or role..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full border rounded p-2"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full border rounded p-2"
+              >
+                <option>All</option>
+                <option>Applied</option>
+                <option>Online Assessment</option>
+                <option>Phone Screen</option>
+                <option>Final Round</option>
+                <option>Offer</option>
+                <option>Rejected</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Visa Sponsorship</label>
+              <select
+                value={visaFilter}
+                onChange={(e) => setVisaFilter(e.target.value)}
+                className="w-full border rounded p-2"
+              >
+                <option>All</option>
+                <option>Sponsors</option>
+                <option>No Sponsor</option>
+              </select>
+            </div>
+          </div>
+        </div>
         
         <div className="bg-white rounded-lg shadow">
-          {jobs.length === 0 ? (
+          {filteredJobs.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
-              <p className="text-xl mb-2">No applications yet!</p>
-              <p>Click "Add Application" to track your first internship application.</p>
+              <p className="text-xl mb-2">
+                {jobs.length === 0 ? 'No applications yet!' : 'No applications match your filters'}
+              </p>
+              <p>
+                {jobs.length === 0 
+                  ? 'Click "Add Application" to track your first internship application.'
+                  : 'Try adjusting your search or filters'}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -114,7 +181,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {jobs.map(job => (
+                  {filteredJobs.map(job => (
                     <tr key={job.id} className="border-t hover:bg-gray-50">
                       <td className="p-4 font-medium">{job.company}</td>
                       <td className="p-4">{job.role}</td>
@@ -157,7 +224,7 @@ function App() {
         {jobs.length > 0 && (
           <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              💡 <strong>Tip:</strong> {jobs.filter(j => j.sponsors_visa).length} out of {jobs.length} companies sponsor F-1 visas
+              💡 <strong>Tip:</strong> Showing {filteredJobs.length} of {jobs.length} applications • {jobs.filter(j => j.sponsors_visa).length} companies sponsor F-1 visas
             </p>
           </div>
         )}
