@@ -62,6 +62,16 @@ function App() {
       console.error('Error updating job:', error);
     }
   };
+  // Quick status update
+  const handleQuickStatusUpdate = async (jobId, newStatus) => {
+    try {
+      const job = jobs.find(j => j.id === jobId);
+      await axios.put(`${API_URL}/jobs/${jobId}`, { ...job, status: newStatus });
+      fetchJobs();
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
 
   const getStatusColor = (status) => {
     const colors = {
@@ -260,9 +270,18 @@ function App() {
                       <td className="p-4 text-gray-600">{job.location || '-'}</td>
                       <td className="p-4 text-gray-600 text-sm">{getDaysAgo(job.applied_date)}</td>
                       <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(job.status)}`}>
-                          {job.status}
-                        </span>
+                        <select
+                          value={job.status}
+                          onChange={(e) => handleQuickStatusUpdate(job.id, e.target.value)}
+                          className={`px-3 py-1 rounded-full text-sm font-medium border-0 cursor-pointer ${getStatusColor(job.status)}`}
+                        >
+                          <option>Applied</option>
+                          <option>Online Assessment</option>
+                          <option>Phone Screen</option>
+                          <option>Final Round</option>
+                          <option>Offer</option>
+                          <option>Rejected</option>
+                        </select>
                       </td>
                       <td className="p-4">
                         {job.sponsors_visa ? (
