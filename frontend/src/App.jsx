@@ -8,6 +8,7 @@ function App() {
   const [jobs, setJobs] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [editingJob, setEditingJob] = useState(null);
 
   const fetchJobs = async () => {
     try {
@@ -41,6 +42,20 @@ function App() {
       } catch (error) {
         console.error('Error deleting job:', error);
       }
+    }
+  };
+
+  const handleEditJob = (job) => {
+    setEditingJob(job);
+  };
+
+  const handleUpdateJob = async (jobData) => {
+    try {
+      await axios.put(`${API_URL}/jobs/${editingJob.id}`, jobData);
+      setEditingJob(null);
+      fetchJobs();
+    } catch (error) {
+      console.error('Error updating job:', error);
     }
   };
 
@@ -119,6 +134,12 @@ function App() {
                       <td className="p-4 text-gray-600">{job.salary_range || '-'}</td>
                       <td className="p-4">
                         <button
+                          onClick={() => handleEditJob(job)}
+                          className="text-blue-600 hover:text-blue-800 font-medium mr-4"
+                        >
+                          Edit
+                        </button>
+                        <button
                           onClick={() => handleDeleteJob(job.id)}
                           className="text-red-600 hover:text-red-800 font-medium"
                         >
@@ -146,6 +167,14 @@ function App() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAdd={handleAddJob}
+      />
+
+      <AddJobModal 
+        isOpen={!!editingJob}
+        onClose={() => setEditingJob(null)}
+        onAdd={handleUpdateJob}
+        initialData={editingJob}
+        isEditing={true}
       />
     </div>
   )
