@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function AddJobModal({ isOpen, onClose, onAdd }) {
+export default function AddJobModal({ isOpen, onClose, onAdd, initialData = null, isEditing = false }) {
   const [formData, setFormData] = useState({
     company: '',
     role: '',
@@ -12,19 +12,37 @@ export default function AddJobModal({ isOpen, onClose, onAdd }) {
     notes: ''
   });
 
+  // Load initial data when editing
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        company: initialData.company || '',
+        role: initialData.role || '',
+        location: initialData.location || '',
+        salary_range: initialData.salary_range || '',
+        sponsors_visa: initialData.sponsors_visa || false,
+        application_url: initialData.application_url || '',
+        status: initialData.status || 'Applied',
+        notes: initialData.notes || ''
+      });
+    }
+  }, [initialData]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     await onAdd(formData);
-    setFormData({
-      company: '',
-      role: '',
-      location: '',
-      salary_range: '',
-      sponsors_visa: false,
-      application_url: '',
-      status: 'Applied',
-      notes: ''
-    });
+    if (!isEditing) {
+      setFormData({
+        company: '',
+        role: '',
+        location: '',
+        salary_range: '',
+        sponsors_visa: false,
+        application_url: '',
+        status: 'Applied',
+        notes: ''
+      });
+    }
     onClose();
   };
 
@@ -34,7 +52,9 @@ export default function AddJobModal({ isOpen, onClose, onAdd }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Add New Application</h2>
+          <h2 className="text-2xl font-bold">
+            {isEditing ? 'Edit Application' : 'Add New Application'}
+          </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
         </div>
 
@@ -145,7 +165,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd }) {
               type="submit"
               className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
             >
-              Add Application
+              {isEditing ? 'Update Application' : 'Add Application'}
             </button>
             <button
               type="button"
