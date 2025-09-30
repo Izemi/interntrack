@@ -9,7 +9,8 @@ export default function AddJobModal({ isOpen, onClose, onAdd, initialData = null
     sponsors_visa: false,
     application_url: '',
     status: 'Applied',
-    notes: ''
+    notes: '',
+    deadline: ''  // Fixed: added comma
   });
 
   // Load initial data when editing
@@ -23,7 +24,8 @@ export default function AddJobModal({ isOpen, onClose, onAdd, initialData = null
         sponsors_visa: initialData.sponsors_visa || false,
         application_url: initialData.application_url || '',
         status: initialData.status || 'Applied',
-        notes: initialData.notes || ''
+        notes: initialData.notes || '',
+        deadline: initialData.deadline ? initialData.deadline.split('T')[0] : ''  // Fixed: added comma
       });
     }
   }, [initialData]);
@@ -40,7 +42,8 @@ export default function AddJobModal({ isOpen, onClose, onAdd, initialData = null
         sponsors_visa: false,
         application_url: '',
         status: 'Applied',
-        notes: ''
+        notes: '',
+        deadline: ''  // Fixed: added deadline reset
       });
     }
     onClose();
@@ -117,6 +120,16 @@ export default function AddJobModal({ isOpen, onClose, onAdd, initialData = null
               onChange={(e) => setFormData({...formData, application_url: e.target.value})}
               className="w-full border rounded p-2"
               placeholder="https://..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Application Deadline</label>
+            <input
+              type="date"
+              value={formData.deadline}
+              onChange={(e) => setFormData({...formData, deadline: e.target.value})}
+              className="w-full border rounded p-2"
             />
           </div>
 
