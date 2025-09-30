@@ -46,6 +46,29 @@ app.post('/api/jobs', async (req, res) => {
   }
 });
 
+// Update job
+app.put('/api/jobs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { company, role, location, salary_range, sponsors_visa, application_url, job_description, status, notes } = req.body;
+    
+    const result = await pool.query(
+      `UPDATE jobs 
+       SET company = $1, role = $2, location = $3, salary_range = $4, 
+           sponsors_visa = $5, application_url = $6, job_description = $7, 
+           status = $8, notes = $9, updated_at = NOW()
+       WHERE id = $10
+       RETURNING *`,
+      [company, role, location, salary_range, sponsors_visa, application_url, job_description, status, notes, id]
+    );
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Delete job
 app.delete('/api/jobs/:id', async (req, res) => {
   try {
