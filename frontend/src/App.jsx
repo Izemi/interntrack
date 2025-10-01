@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from './context/AuthContext'
+import Login from './components/Login'
 import AddJobModal from './components/AddJobModal'
 import ActivityTimeline from './components/ActivityTimeline'
 import axios from 'axios'
@@ -6,6 +8,7 @@ import axios from 'axios'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 function App() {
+  const { user, logout, loading: authLoading } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,8 +31,10 @@ function App() {
   };
 
   useEffect(() => {
-    fetchJobs();
-  }, []);
+    if (user) {
+      fetchJobs();
+    }
+  }, [user]);
 
   const handleAddJob = async (jobData) => {
     try {
@@ -177,9 +182,19 @@ function App() {
     return 0;
   });
 
-  if (loading) {
+  if (authLoading) {
     return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="text-xl">Loading...</div>
+    </div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  if (loading) {
+    return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-xl">Loading applications...</div>
     </div>;
   }
 
@@ -189,9 +204,15 @@ function App() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-800">InternTrack</h1>
-            <p className="text-gray-600 mt-1">Track your internship applications with visa sponsorship insights</p>
+            <p className="text-gray-600 mt-1">Welcome, {user.name || user.email}</p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={logout}
+              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 font-medium"
+            >
+              Logout
+            </button>
             <button
               onClick={handleExportCSV}
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium"
