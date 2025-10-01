@@ -27,7 +27,7 @@ export default function Analytics({ jobs }) {
 
   // Status breakdown
   const getStatusBreakdown = () => {
-    const statuses = ['Applied', 'Online Assessment', 'Phone Screen', 'Final Round', 'Offer', 'Rejected'];
+    const statuses = ['Planning to Apply', 'Applied', 'Online Assessment', 'Phone Screen', 'Final Round', 'Offer', 'Rejected'];
     return statuses.map(status => ({
       name: status,
       count: jobs.filter(j => j.status === status).length
@@ -46,6 +46,7 @@ export default function Analytics({ jobs }) {
   };
 
   const COLORS = {
+    'Planning to Apply': '#6b7280',
     'Applied': '#3b82f6',
     'Online Assessment': '#a855f7',
     'Phone Screen': '#eab308',
@@ -137,7 +138,7 @@ export default function Analytics({ jobs }) {
             <p className="text-sm text-gray-600">Average Response Rate</p>
             <p className="text-2xl font-bold text-blue-600">
               {jobs.length > 0 
-                ? Math.round((jobs.filter(j => j.status !== 'Applied').length / jobs.length) * 100)
+                ? Math.round((jobs.filter(j => j.status !== 'Applied' && j.status !== 'Planning to Apply').length / jobs.length) * 100)
                 : 0}%
             </p>
           </div>
