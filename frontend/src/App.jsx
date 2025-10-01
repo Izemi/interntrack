@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import AddJobModal from './components/AddJobModal'
+import ActivityTimeline from './components/ActivityTimeline'
 import axios from 'axios'
 
 const API_URL = 'http://localhost:8080/api';
@@ -13,6 +14,7 @@ function App() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [visaFilter, setVisaFilter] = useState('All');
   const [sortBy, setSortBy] = useState('date');
+  const [timelineJob, setTimelineJob] = useState(null);
 
   const fetchJobs = async () => {
     try {
@@ -62,15 +64,44 @@ function App() {
       console.error('Error updating job:', error);
     }
   };
-  // Quick status update
+
   const handleQuickStatusUpdate = async (jobId, newStatus) => {
     try {
       const job = jobs.find(j => j.id === jobId);
+      if (!job) return;
       await axios.put(`${API_URL}/jobs/${jobId}`, { ...job, status: newStatus });
       fetchJobs();
     } catch (error) {
       console.error('Error updating status:', error);
     }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Company', 'Role', 'Location', 'Status', 'Applied Date', 'Deadline', 'Visa Sponsor', 'Salary Range', 'Notes'];
+    
+    const csvData = jobs.map(job => [
+      job.company,
+      job.role,
+      job.location || '',
+      job.status,
+      job.applied_date ? new Date(job.applied_date).toLocaleDateString() : '',
+      job.deadline ? new Date(job.deadline).toLocaleDateString() : '',
+      job.sponsors_visa ? 'Yes' : 'No',
+      job.salary_range || '',
+      job.notes || ''
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `interntrack-applications-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
   };
 
   const getStatusColor = (status) => {
@@ -85,9 +116,10 @@ function App() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // Calculate days ago
   const getDaysAgo = (dateString) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
+    if (isNaN(date)) return '-';
     const today = new Date();
     const diffTime = Math.abs(today - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -97,7 +129,22 @@ function App() {
     return `${diffDays} days ago`;
   };
 
-  // Calculate statistics
+  const getDeadlineWarning = (deadline) => {
+    if (!deadline) return null;
+    
+    const deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate)) return null;
+
+    const today = new Date();
+    const daysUntil = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntil < 0) return { text: 'Expired', color: 'text-red-600' };
+    if (daysUntil === 0) return { text: 'Today!', color: 'text-red-600 font-bold' };
+    if (daysUntil <= 3) return { text: `${daysUntil}d left`, color: 'text-orange-600 font-semibold' };
+    if (daysUntil <= 7) return { text: `${daysUntil}d left`, color: 'text-yellow-600' };
+    return { text: `${daysUntil}d left`, color: 'text-gray-600' };
+  };
+
   const stats = {
     total: jobs.length,
     applied: jobs.filter(j => j.status === 'Applied').length,
@@ -108,7 +155,6 @@ function App() {
     sponsorsVisa: jobs.filter(j => j.sponsors_visa).length
   };
 
-  // Filter and sort jobs
   let filteredJobs = jobs.filter(job => {
     const matchesSearch = job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          job.role.toLowerCase().includes(searchQuery.toLowerCase());
@@ -120,7 +166,6 @@ function App() {
     return matchesSearch && matchesStatus && matchesVisa;
   });
 
-  // Sort jobs
   filteredJobs = [...filteredJobs].sort((a, b) => {
     if (sortBy === 'date') {
       return new Date(b.applied_date) - new Date(a.applied_date);
@@ -143,18 +188,25 @@ function App() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800">InternTrack 🎯</h1>
+            <h1 className="text-4xl font-bold text-gray-800">InternTrack</h1>
             <p className="text-gray-600 mt-1">Track your internship applications with visa sponsorship insights</p>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
-          >
-            + Add Application
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleExportCSV}
+              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium"
+            >
+              Export CSV
+            </button>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
+            >
+              + Add Application
+            </button>
+          </div>
         </div>
 
-        {/* Statistics Cards */}
         {jobs.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-lg shadow p-4">
@@ -176,7 +228,6 @@ function App() {
           </div>
         )}
 
-        {/* Search and Filters */}
         <div className="mb-6 bg-white rounded-lg shadow p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -253,12 +304,14 @@ function App() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left p-4 font-semibold">Company</th>
+                    <th className="text-left p-4 font-semibold">Research</th>
                     <th className="text-left p-4 font-semibold">Role</th>
                     <th className="text-left p-4 font-semibold">Location</th>
                     <th className="text-left p-4 font-semibold">Applied</th>
                     <th className="text-left p-4 font-semibold">Status</th>
                     <th className="text-left p-4 font-semibold">Visa Sponsor</th>
                     <th className="text-left p-4 font-semibold">Salary</th>
+                    <th className="text-left p-4 font-semibold">Deadline</th>
                     <th className="text-left p-4 font-semibold">Actions</th>
                   </tr>
                 </thead>
@@ -266,6 +319,37 @@ function App() {
                   {filteredJobs.map(job => (
                     <tr key={job.id} className="border-t hover:bg-gray-50">
                       <td className="p-4 font-medium">{job.company}</td>
+                      <td className="p-4">
+                        <div className="flex gap-2">
+                          <a
+                            href={`https://www.glassdoor.com/Search/results.htm?keyword=${encodeURIComponent(job.company)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-xs"
+                            title="Glassdoor"
+                          >
+                            💼
+                          </a>
+                          <a
+                            href={`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(job.company)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-xs"
+                            title="LinkedIn"
+                          >
+                            💻
+                          </a>
+                          <a
+                            href={`https://www.levels.fyi/companies/${encodeURIComponent(job.company.toLowerCase().replace(/\s+/g, '-'))}/salaries`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-xs"
+                            title="Levels.fyi"
+                          >
+                            💰
+                          </a>
+                        </div>
+                      </td>
                       <td className="p-4">{job.role}</td>
                       <td className="p-4 text-gray-600">{job.location || '-'}</td>
                       <td className="p-4 text-gray-600 text-sm">{getDaysAgo(job.applied_date)}</td>
@@ -291,19 +375,36 @@ function App() {
                         )}
                       </td>
                       <td className="p-4 text-gray-600">{job.salary_range || '-'}</td>
+                      <td className="p-4 text-sm">
+                        {job.deadline ? (
+                          <span className={getDeadlineWarning(job.deadline)?.color}>
+                            {getDeadlineWarning(job.deadline)?.text}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
                       <td className="p-4">
-                        <button
-                          onClick={() => handleEditJob(job)}
-                          className="text-blue-600 hover:text-blue-800 font-medium mr-4"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteJob(job.id)}
-                          className="text-red-600 hover:text-red-800 font-medium"
-                        >
-                          Delete
-                        </button>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => setTimelineJob(job)}
+                            className="text-purple-600 hover:text-purple-800 text-sm"
+                          >
+                            Timeline
+                          </button>
+                          <button
+                            onClick={() => handleEditJob(job)}
+                            className="text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteJob(job.id)}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -317,12 +418,12 @@ function App() {
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
-                💡 <strong>Tip:</strong> Showing {filteredJobs.length} of {stats.total} applications
+                <strong>Tip:</strong> Showing {filteredJobs.length} of {stats.total} applications
               </p>
             </div>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm text-green-800">
-                ✓ <strong>{stats.sponsorsVisa}</strong> companies sponsor F-1 visas ({Math.round((stats.sponsorsVisa / stats.total) * 100)}%)
+                <strong>{stats.sponsorsVisa}</strong> companies sponsor F-1 visas ({Math.round((stats.sponsorsVisa / stats.total) * 100)}%)
               </p>
             </div>
           </div>
@@ -341,6 +442,13 @@ function App() {
         onAdd={handleUpdateJob}
         initialData={editingJob}
         isEditing={true}
+      />
+
+      <ActivityTimeline
+        jobId={timelineJob?.id}
+        isOpen={!!timelineJob}
+        onClose={() => setTimelineJob(null)}
+        companyName={timelineJob?.company}
       />
     </div>
   )
