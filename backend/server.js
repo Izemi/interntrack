@@ -3,6 +3,8 @@ const cors = require('cors');
 const pool = require('./db');
 const authRoutes = require('./routes/auth');
 const authMiddleware = require('./middleware/auth');
+const cron = require('node-cron');
+const { checkAndSendReminders } = require('./services/emailService');
 require('dotenv').config();
 
 const app = express();
@@ -157,6 +159,19 @@ app.post('/api/jobs/:id/activities', async (req, res) => {
   }
 });
 
+// Run deadline check every day at 9 AM
+cron.schedule('0 9 * * *', () => {
+  console.log('Running daily deadline reminder check');
+  checkAndSendReminders();
+});
+
+// Run immediately on startup for testing (remove in production)
+if (process.env.NODE_ENV !== 'production') {
+  setTimeout(() => {
+    console.log('Running initial deadline check...');
+    checkAndSendReminders();
+  }, 5000);
+}
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

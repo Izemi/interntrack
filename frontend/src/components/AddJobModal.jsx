@@ -141,6 +141,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, initialData = null
                 onChange={(e) => setFormData({...formData, status: e.target.value})}
                 className="w-full border rounded p-2"
               >
+                <option>Planning to Apply</option>
                 <option>Applied</option>
                 <option>Online Assessment</option>
                 <option>Phone Screen</option>
