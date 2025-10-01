@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import Login from './components/Login'
 import AddJobModal from './components/AddJobModal'
 import ActivityTimeline from './components/ActivityTimeline'
+import JobCard from './components/JobCard'
 import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -199,29 +200,29 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800">InternTrack</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">InternTrack</h1>
             <p className="text-gray-600 mt-1">Welcome, {user.name || user.email}</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             <button
               onClick={logout}
-              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 font-medium"
+              className="bg-gray-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg hover:bg-gray-700 font-medium text-sm md:text-base"
             >
               Logout
             </button>
             <button
               onClick={handleExportCSV}
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium"
+              className="bg-green-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg hover:bg-green-700 font-medium text-sm md:text-base"
             >
               Export CSV
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
+              className="bg-blue-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg hover:bg-blue-700 font-medium text-sm md:text-base"
             >
               + Add Application
             </button>
@@ -229,28 +230,28 @@ function App() {
         </div>
 
         {jobs.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-sm text-gray-600">Total Applications</div>
-              <div className="text-3xl font-bold text-gray-800">{stats.total}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
+            <div className="bg-white rounded-lg shadow p-3 md:p-4">
+              <div className="text-xs md:text-sm text-gray-600">Total Applications</div>
+              <div className="text-2xl md:text-3xl font-bold text-gray-800">{stats.total}</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-sm text-gray-600">Interviews</div>
-              <div className="text-3xl font-bold text-yellow-600">{stats.interviews}</div>
+            <div className="bg-white rounded-lg shadow p-3 md:p-4">
+              <div className="text-xs md:text-sm text-gray-600">Interviews</div>
+              <div className="text-2xl md:text-3xl font-bold text-yellow-600">{stats.interviews}</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-sm text-gray-600">Response Rate</div>
-              <div className="text-3xl font-bold text-blue-600">{stats.responseRate}%</div>
+            <div className="bg-white rounded-lg shadow p-3 md:p-4">
+              <div className="text-xs md:text-sm text-gray-600">Response Rate</div>
+              <div className="text-2xl md:text-3xl font-bold text-blue-600">{stats.responseRate}%</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-sm text-gray-600">Visa Sponsors</div>
-              <div className="text-3xl font-bold text-green-600">{stats.sponsorsVisa}</div>
+            <div className="bg-white rounded-lg shadow p-3 md:p-4">
+              <div className="text-xs md:text-sm text-gray-600">Visa Sponsors</div>
+              <div className="text-2xl md:text-3xl font-bold text-green-600">{stats.sponsorsVisa}</div>
             </div>
           </div>
         )}
 
-        <div className="mb-6 bg-white rounded-lg shadow p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="mb-4 md:mb-6 bg-white rounded-lg shadow p-3 md:p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Search</label>
               <input
@@ -258,7 +259,7 @@ function App() {
                 placeholder="Search by company or role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border rounded p-2"
+                className="w-full border rounded p-2 text-sm"
               />
             </div>
             
@@ -267,7 +268,7 @@ function App() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full border rounded p-2"
+                className="w-full border rounded p-2 text-sm"
               >
                 <option>All</option>
                 <option>Applied</option>
@@ -284,7 +285,7 @@ function App() {
               <select
                 value={visaFilter}
                 onChange={(e) => setVisaFilter(e.target.value)}
-                className="w-full border rounded p-2"
+                className="w-full border rounded p-2 text-sm"
               >
                 <option>All</option>
                 <option>Sponsors</option>
@@ -297,7 +298,7 @@ function App() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full border rounded p-2"
+                className="w-full border rounded p-2 text-sm"
               >
                 <option value="date">Date Applied</option>
                 <option value="company">Company</option>
@@ -309,141 +310,161 @@ function App() {
         
         <div className="bg-white rounded-lg shadow">
           {filteredJobs.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              <p className="text-xl mb-2">
+            <div className="p-8 md:p-12 text-center text-gray-500">
+              <p className="text-lg md:text-xl mb-2">
                 {jobs.length === 0 ? 'No applications yet!' : 'No applications match your filters'}
               </p>
-              <p>
+              <p className="text-sm md:text-base">
                 {jobs.length === 0 
                   ? 'Click "Add Application" to track your first internship application.'
                   : 'Try adjusting your search or filters'}
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left p-4 font-semibold">Company</th>
-                    <th className="text-left p-4 font-semibold">Research</th>
-                    <th className="text-left p-4 font-semibold">Role</th>
-                    <th className="text-left p-4 font-semibold">Location</th>
-                    <th className="text-left p-4 font-semibold">Applied</th>
-                    <th className="text-left p-4 font-semibold">Status</th>
-                    <th className="text-left p-4 font-semibold">Visa Sponsor</th>
-                    <th className="text-left p-4 font-semibold">Salary</th>
-                    <th className="text-left p-4 font-semibold">Deadline</th>
-                    <th className="text-left p-4 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredJobs.map(job => (
-                    <tr key={job.id} className="border-t hover:bg-gray-50">
-                      <td className="p-4 font-medium">{job.company}</td>
-                      <td className="p-4">
-                        <div className="flex gap-2">
-                          <a
-                            href={`https://www.glassdoor.com/Search/results.htm?keyword=${encodeURIComponent(job.company)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-xs"
-                            title="Glassdoor"
-                          >
-                            💼
-                          </a>
-                          <a
-                            href={`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(job.company)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-xs"
-                            title="LinkedIn"
-                          >
-                            💻
-                          </a>
-                          <a
-                            href={`https://www.levels.fyi/companies/${encodeURIComponent(job.company.toLowerCase().replace(/\s+/g, '-'))}/salaries`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-xs"
-                            title="Levels.fyi"
-                          >
-                            💰
-                          </a>
-                        </div>
-                      </td>
-                      <td className="p-4">{job.role}</td>
-                      <td className="p-4 text-gray-600">{job.location || '-'}</td>
-                      <td className="p-4 text-gray-600 text-sm">{getDaysAgo(job.applied_date)}</td>
-                      <td className="p-4">
-                        <select
-                          value={job.status}
-                          onChange={(e) => handleQuickStatusUpdate(job.id, e.target.value)}
-                          className={`px-3 py-1 rounded-full text-sm font-medium border-0 cursor-pointer ${getStatusColor(job.status)}`}
-                        >
-                          <option>Applied</option>
-                          <option>Online Assessment</option>
-                          <option>Phone Screen</option>
-                          <option>Final Round</option>
-                          <option>Offer</option>
-                          <option>Rejected</option>
-                        </select>
-                      </td>
-                      <td className="p-4">
-                        {job.sponsors_visa ? (
-                          <span className="text-green-600 font-medium">✓ Yes</span>
-                        ) : (
-                          <span className="text-red-600 font-medium">✗ No</span>
-                        )}
-                      </td>
-                      <td className="p-4 text-gray-600">{job.salary_range || '-'}</td>
-                      <td className="p-4 text-sm">
-                        {job.deadline ? (
-                          <span className={getDeadlineWarning(job.deadline)?.color}>
-                            {getDeadlineWarning(job.deadline)?.text}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => setTimelineJob(job)}
-                            className="text-purple-600 hover:text-purple-800 text-sm"
-                          >
-                            Timeline
-                          </button>
-                          <button
-                            onClick={() => handleEditJob(job)}
-                            className="text-blue-600 hover:text-blue-800 text-sm"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteJob(job.id)}
-                            className="text-red-600 hover:text-red-800 text-sm"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left p-4 font-semibold">Company</th>
+                      <th className="text-left p-4 font-semibold">Research</th>
+                      <th className="text-left p-4 font-semibold">Role</th>
+                      <th className="text-left p-4 font-semibold">Location</th>
+                      <th className="text-left p-4 font-semibold">Applied</th>
+                      <th className="text-left p-4 font-semibold">Status</th>
+                      <th className="text-left p-4 font-semibold">Visa Sponsor</th>
+                      <th className="text-left p-4 font-semibold">Salary</th>
+                      <th className="text-left p-4 font-semibold">Deadline</th>
+                      <th className="text-left p-4 font-semibold">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredJobs.map(job => (
+                      <tr key={job.id} className="border-t hover:bg-gray-50">
+                        <td className="p-4 font-medium">{job.company}</td>
+                        <td className="p-4">
+                          <div className="flex gap-2">
+                            <a
+                              href={`https://www.glassdoor.com/Search/results.htm?keyword=${encodeURIComponent(job.company)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-xs"
+                              title="Glassdoor"
+                            >
+                              💼
+                            </a>
+                            <a
+                              href={`https://www.linkedin.com/search/results/companies/?keywords=${encodeURIComponent(job.company)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-xs"
+                              title="LinkedIn"
+                            >
+                              💻
+                            </a>
+                            <a
+                              href={`https://www.levels.fyi/companies/${encodeURIComponent(job.company.toLowerCase().replace(/\s+/g, '-'))}/salaries`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-xs"
+                              title="Levels.fyi"
+                            >
+                              💰
+                            </a>
+                          </div>
+                        </td>
+                        <td className="p-4">{job.role}</td>
+                        <td className="p-4 text-gray-600">{job.location || '-'}</td>
+                        <td className="p-4 text-gray-600 text-sm">{getDaysAgo(job.applied_date)}</td>
+                        <td className="p-4">
+                          <select
+                            value={job.status}
+                            onChange={(e) => handleQuickStatusUpdate(job.id, e.target.value)}
+                            className={`px-3 py-1 rounded-full text-sm font-medium border-0 cursor-pointer ${getStatusColor(job.status)}`}
+                          >
+                            <option>Applied</option>
+                            <option>Online Assessment</option>
+                            <option>Phone Screen</option>
+                            <option>Final Round</option>
+                            <option>Offer</option>
+                            <option>Rejected</option>
+                          </select>
+                        </td>
+                        <td className="p-4">
+                          {job.sponsors_visa ? (
+                            <span className="text-green-600 font-medium">✓ Yes</span>
+                          ) : (
+                            <span className="text-red-600 font-medium">✗ No</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-gray-600">{job.salary_range || '-'}</td>
+                        <td className="p-4 text-sm">
+                          {job.deadline ? (
+                            <span className={getDeadlineWarning(job.deadline)?.color}>
+                              {getDeadlineWarning(job.deadline)?.text}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => setTimelineJob(job)}
+                              className="text-purple-600 hover:text-purple-800 text-sm"
+                            >
+                              Timeline
+                            </button>
+                            <button
+                              onClick={() => handleEditJob(job)}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteJob(job.id)}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden p-4 space-y-4">
+                {filteredJobs.map(job => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onEdit={handleEditJob}
+                    onDelete={handleDeleteJob}
+                    onTimeline={setTimelineJob}
+                    onStatusUpdate={handleQuickStatusUpdate}
+                    getStatusColor={getStatusColor}
+                    getDaysAgo={getDaysAgo}
+                    getDeadlineWarning={getDeadlineWarning}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 
         {jobs.length > 0 && (
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+          <div className="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4">
+              <p className="text-xs md:text-sm text-blue-800">
                 <strong>Tip:</strong> Showing {filteredJobs.length} of {stats.total} applications
               </p>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-800">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4">
+              <p className="text-xs md:text-sm text-green-800">
                 <strong>{stats.sponsorsVisa}</strong> companies sponsor F-1 visas ({Math.round((stats.sponsorsVisa / stats.total) * 100)}%)
               </p>
             </div>
