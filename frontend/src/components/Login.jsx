@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function Login() {
+export default function Login({ onForgotPassword }) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -21,8 +21,8 @@ export default function Login() {
     if (isLogin) {
       result = await login(formData.email, formData.password);
     } else {
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
+      if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters');
         setLoading(false);
         return;
       }
@@ -105,10 +105,14 @@ export default function Login() {
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium">Password</label>
-              {isLogin && (
-                <span className="text-xs text-gray-500 italic">
-                  Password reset coming soon
-                </span>
+              {isLogin && onForgotPassword && (
+                <button
+                  type="button"
+                  onClick={onForgotPassword}
+                  className="text-xs text-blue-600 hover:text-blue-700"
+                >
+                  Forgot password?
+                </button>
               )}
             </div>
             <input
@@ -116,12 +120,17 @@ export default function Login() {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder={isLogin ? "Enter your password" : "At least 6 characters"}
+              placeholder={isLogin ? "Enter your password" : "At least 8 characters"}
               required
-              minLength={6}
+              minLength={isLogin ? 1 : 8}
             />
             {!isLogin && (
-              <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters</p>
+              <ul className="text-xs text-gray-600 mt-2 space-y-1">
+                <li>• At least 8 characters</li>
+                <li>• One uppercase letter</li>
+                <li>• One lowercase letter</li>
+                <li>• One number</li>
+              </ul>
             )}
           </div>
 
